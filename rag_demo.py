@@ -20,6 +20,16 @@ There are 4 pieces
     - VectorMCPServer: This class exposes a tool call to get related chunks from the vector db.
     - GraphMCPServer: Gets a knowledge graph from Neo4j graph db.
     - AIService: Ties the above components into a service for downstream consumption.
+
+    Requirements -
+    There is a hard requirement on 2 things.
+    - A local Neo4j database instance (we are listening on the default bolt url)
+    - A python installation with uv (package manager) installed.
+    The rest of the requirements are self container. When the script runs, it will fetch all the required modules.
+
+    Testing -
+    Here's a sample curl call
+    curl -X POST localhost:8000 -H "Content-Type: application/json" -d '{"query":"What is the impact if the AuthTokens storage asset degrades during peak load.","focus_entity":"PaymentService"}'
 """
 
 import glob
@@ -60,8 +70,8 @@ class DataIngestionEngine:
 
         query = """
         MERGE (s:Component {name: "PaymentService"})
-        MERGE (d: Component {name: AuthDatabase})
-        MERGE (t:Asset {from: AuthTokens})
+        MERGE (d: Component {name: "AuthDatabase"})
+        MERGE (t:Asset {from: "AuthTokens"})
 
         MERGE (s)-[:DEPENDS_ON]->(d)
         MERGE (d)-[:STORES]->(t)
@@ -96,10 +106,9 @@ class MCPGraphServer:
     def call_tool(self, tool_name: str, args: dict):
         if tool_name == "retrieve_graph_relations":
             query = """
-            MATCH (c:Component {name: $entity})-[r1-DEPENDS_ON]->(target)-[r2:STORES]->(asset)
-            RETURN c.name AS source, target.name as dependency, asset.name as asset_stored
+                MATCH (c:Component {name: $entity})-[r1:DEPENDS_ON]->(target)-[r2:STORES]->(asset)
+                RETURN c.name AS source, target.name AS dependency, asset.name AS asset_stored
             """
-
             relations = []
             with self.driver.session() as sess:
                 result = sess.run(query, entity=args.get("entity"))
