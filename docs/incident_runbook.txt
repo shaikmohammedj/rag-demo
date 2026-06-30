@@ -1,0 +1,12 @@
+# Site Reliability Engineering (SRE) Runbook: Authentication Outages
+Document ID: SRE-RUN-012
+Status: DEPLOYED
+Owner: DevOps / SRE On-Call Team
+
+## 1. Incident Overview: Cascading Session Failures
+When the AuthDatabase experiences high connection spikes (typically caused by promotional flash sales), the availability of the AuthTokens asset degrades. This creates a systemic cascading failure sequence across the platform.
+
+## 2. Triage and Resolution Paths
+1. Symptom: PaymentService begins emitting `ConnectionPoolTimeoutException` errors and customer checkouts fail.
+2. Root Cause Analysis: Verify connection counts on the AuthDatabase. If connection metrics exceed 95% capacity, the database is unable to read or mutate the AuthTokens schema.
+3. Remediation: Trigger a scale-up of the AuthDatabase read-replicas and temporarily flush the non-critical session cache to liberate connection slots for the PaymentService.

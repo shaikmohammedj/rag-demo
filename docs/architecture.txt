@@ -1,0 +1,12 @@
+# System Architecture Specification: Core E-Commerce Loop
+Document ID: ARCH-2026-004
+Status: APPROVED
+Owner: Enterprise Architecture Team
+
+## 1. Gateway and Traffic Routing
+All inbound client checkout interactions are intercepted by the API-Gateway layer, which performs rate limiting and passes the traffic directly to the PaymentService.
+
+## 2. PaymentService Dependencies
+The PaymentService processes customer checkouts, credit card authorizations, and invoice generation. It is completely stateless and relies entirely on the AuthDatabase to validate and process transactions.
+- Direct Dependency: AuthDatabase (Bolt Protocol, Port 7687)
+- Downstream Impact: If AuthDatabase encounters critical resource deadlocks, connection pool exhaustion, or latency exceeding 350ms, PaymentService immediately triggers cascading timeout exceptions (HTTP 504 Gateway Timeout) to the API-Gateway, completely halting the customer checkout loop.
