@@ -1,0 +1,6 @@
+from typing import Any, Dict, List, Protocol
+
+
+class IMCPServer(Protocol):
+    def call_tool(self, tool_name: str, arguments: Dict[str, Any]) -> List[str]: ...
+    def list_tools(self) -> List[Dict[str, Any]]: ...
