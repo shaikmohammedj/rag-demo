@@ -10,4 +10,5 @@ dependencies = []
 members = [
     "tools/vectordb_service",
     "tools/graphdb_service",
+    "services/ai_service",
 ]
