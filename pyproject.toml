@@ -9,4 +9,5 @@ dependencies = []
 [tool.uv.workspace]
 members = [
     "tools/vectordb_service",
+    "tools/graphdb_service",
 ]
